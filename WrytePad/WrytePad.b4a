@@ -1,0 +1,216 @@
+﻿Version=7.01
+NumberOfModules=2
+Module1=Starter
+Module2=add
+Build1=Default,com.WrytePad
+ManifestCode='This code will be applied to the manifest file during compilation.~\n~'You do not need to modify it in most cases.~\n~'See this link for for more information: https://www.b4x.com/forum/showthread.php?p=78136~\n~AddManifestText(~\n~<uses-sdk android:minSdkVersion="5" android:targetSdkVersion="19"/>~\n~<supports-screens android:largeScreens="true" ~\n~    android:normalScreens="true" ~\n~    android:smallScreens="true" ~\n~    android:anyDensity="true"/>)~\n~SetApplicationAttribute(android:icon, "@drawable/icon")~\n~SetApplicationAttribute(android:label, "$LABEL$")~\n~'End of default text.~\n~
+IconFile=
+NumberOfFiles=9
+File1=1.bal
+File2=2.bal
+File3=aachenb.ttf
+File4=bennb___.ttf
+File5=ic_menu_back.png
+File6=menu_2-32.png
+File7=menu-48.png
+File8=moon flower bold.ttf
+File9=plus_math-48.png
+NumberOfLibraries=4
+Library1=core
+Library2=reflection
+Library3=animationplus
+Library4=sql
+@EndOfDesignText@
+#Region  Project Attributes 
+	#ApplicationLabel: WrytePad
+	#VersionCode: 1
+	#VersionName: 
+	'SupportedOrientations possible values: unspecified, landscape or portrait.
+	#SupportedOrientations: portrait
+	#CanInstallToExternalStorage: False
+#End Region
+
+#Region  Activity Attributes 
+	#FullScreen: true
+	#IncludeTitle:	false
+#End Region
+
+Sub Process_Globals
+	'These global variables will be declared once when the application starts.
+	'These variables can be accessed from all modules.
+	Dim timer As Timer
+	
+End Sub
+
+Sub Globals
+	'These global variables will be redeclared each time the activity is created.
+	'These variables can only be accessed from this module.
+
+	Private PanelSplash As Panel
+	Private PanelSplash2 As Panel
+	Private PanelSideBar As Panel
+	Private PanelHome As Panel
+	Private Panelshadow As Panel
+	Dim animation As AnimationPlus
+	Dim BoolSlide As Boolean = False
+	Private Label4 As Label
+	Private Label5 As Label
+	Private ScrollView1 As ScrollView
+	Dim conPanHeight As Int
+	Dim conPanWidth As Int 
+	Dim panTop As Int
+End Sub
+
+Sub Activity_Create(FirstTime As Boolean)
+	'Do not forget to load the layout file created with the visual designer. For example:
+	'Activity.LoadLayout("Layout1")
+	Activity.LoadLayout("1")
+	
+	ScrollView1.Panel.Width = ScrollView1.Width
+	'ScrollView1.Color = Colors.Red
+	'ScrollView1.Panel.Color = Colors.Green
+	'ScrollView1.Panel.Height = ScrollView1.Height
+	timer.Initialize("timer",3000)
+	timer.Enabled = True
+	
+	
+	animation.InitializeRotateCenter("", 0, 360, Label4)
+	animation.Duration = 1500
+	
+	If FirstTime Then
+		
+		If File.Exists(File.DirInternal,"notes.db") = True Then
+			Log("yes")
+			File.Delete(File.DirInternal,"notes.db")
+		End If
+		
+		If File.Exists(File.DirInternal,"notes.db") = False Then
+			Starter.db.Initialize(File.DirInternal,"notes.db",True)
+			CreateDatabase
+		Else
+			Starter.db.initialize(File.DirInternal,"notes.db",False)
+		End If
+	End If
+	
+	
+	conPanHeight =ScrollView1.Panel.Height
+	conPanWidth = ScrollView1.Panel.Width
+	panTop  = PanelHome.Height * 0.03
+	
+	getNotes(ScrollView1)
+End Sub
+
+Sub Activity_Resume
+
+End Sub
+
+Sub Activity_Pause (UserClosed As Boolean)
+	If UserClosed Then   
+		Starter.db.Close  'if the user closes the program we close the database 
+	 End If
+
+End Sub
+
+
+Sub SetAnimation(InAnimation As String, OutAnimation As String)
+	Dim r As Reflector
+	Dim package As String
+	Dim In, out As Int
+	package = r.GetStaticField("anywheresoftware.b4a.BA", "packageName")
+	In = r.GetStaticField(package & ".R$anim", InAnimation)
+	out = r.GetStaticField(package & ".R$anim", OutAnimation)
+	r.Target = r.GetActivity
+	r.RunMethod4("overridePendingTransition", Array As Object(In, out), Array As String("java.lang.int", "java.lang.int"))
+End Sub
+
+Sub timer_Tick
+	timer.Enabled = False
+	PanelSplash.SetLayoutAnimated(2000, -PanelSplash.Width,0,PanelSplash.Width,PanelSplash.Height)
+	PanelSplash2.SetLayoutAnimated(2000, Activity.Width , 0,PanelSplash2.Width,PanelSplash2.Height)
+	
+End Sub
+
+
+Sub CreateDatabase
+	Dim query As String = "CREATE TABLE notes(ID INTEGER PRIMARY KEY, Title TEXT, Body TEXT, Date TEXT)"	
+	Starter.db.ExecNonQuery(query)
+End Sub
+
+Sub Label4_Click
+	If BoolSlide = False Then
+		Label4.SetLayoutAnimated(1000,75%x,0,Label4.Width,Label4.Height)
+	
+		PanelSideBar.SetLayoutAnimated(1000,0,0,PanelSideBar.Width,PanelSideBar.Height)
+		Panelshadow.SetVisibleAnimated(1000,True)
+		BoolSlide = True
+		Label5.Enabled = False
+		Label4.Text = Chr(0xE5C4)
+	
+	Else
+		Label4.SetLayoutAnimated(1000,0,0,Label4.Width,Label4.Height)
+	
+		PanelSideBar.SetLayoutAnimated(1000,-PanelSideBar.Width,0,PanelSideBar.Width,PanelSideBar.Height)
+		Panelshadow.SetVisibleAnimated(1000,False)
+		Label5.Enabled = True
+		BoolSlide = False
+		Label4.Text = Chr(0xE5D2)
+	
+	End If
+End Sub
+
+Sub Label5_Click
+	StartActivity(add)
+	SetAnimation("file3", "file4")
+End Sub
+
+Sub getNotes(sv As ScrollView)
+	Dim panel0 As Panel = sv.Panel
+	
+	Dim lbl1 As Label
+	Dim lbl2 As Label
+	Dim lbl3 As Label
+	
+	lbl1.Initialize("lbl1")
+	lbl2.Initialize("lbl2")
+	lbl3.Initialize("lbl3")
+	
+'	lbl1.Color = Colors.Red
+'	lbl2.Color = Colors.Blue
+'	lbl3.Color = Colors.Green
+	
+	lbl1.Text = "uvytdrctvybulkjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj"
+	lbl2.Text = "ojhu"
+	lbl3.Text = "ojhg7f66y"
+	
+	'lbl1.Typeface = Typeface.LoadFromAssets(
+	lbl1.TextSize = 25
+	lbl1.TextColor = Colors.Black
+	
+	lbl2.Gravity = Gravity.CENTER
+	
+	lbl3.TextSize = 20
+	
+	Dim nPanel As Panel
+	nPanel.Initialize("npanel")
+	
+	Dim cd As ColorDrawable
+	cd.Initialize2(Colors.ARGB(255,255,235,205), 5dip,1dip,Colors.Black)
+	
+	nPanel.Background = cd
+	
+	
+	panel0.AddView(nPanel,conPanWidth * 0.03,panTop,conPanWidth * 0.94,conPanHeight * 0.18)
+	nPanel.AddView(lbl1,5dip,0,0.78 * conPanWidth, 0.43 * nPanel.Height)
+	nPanel.AddView(lbl2,lbl1.Width,0, 0.16 * conPanWidth,nPanel.Height)
+	nPanel.AddView(lbl3,5dip,lbl1.Height,0.78 * conPanWidth, 0.57 * nPanel.Height)
+	
+	panTop = panTop + (0.2 * conPanHeight)
+	
+	If panTop > panel0.Height Then
+		panel0.Height = panel0.Height + (0.2 * conPanHeight)
+	End If
+End Sub
+
+Sub Button1_Click
+		getNotes(ScrollView1)	
+End Sub
